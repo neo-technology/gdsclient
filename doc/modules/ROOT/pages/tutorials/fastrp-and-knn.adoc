@@ -245,6 +245,10 @@ print(f"Nodes compared: {result['nodesCompared']}")
 print(f"Mean similarity: {result['similarityDistribution']['mean']}")
 ----
 
+----
+<_io.TextIOWrapper name='examples/test.txt' mode='r' encoding='UTF-8'>
+----
+
 As we can see the mean similarity between nodes is quite high. This is
 due to the fact that we have a small example where there are no long
 paths between nodes leading to many similar FastRP node embeddings.
