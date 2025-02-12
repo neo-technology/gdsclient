@@ -3,7 +3,7 @@ nbformat==5.10.4
 nbclient==0.10.2
 ipykernel==6.26.0
 scipy == 1.14.0
-torch==2.3.0
+torch==2.6.0
 torch-scatter==2.1.1
 torch-sparse==0.6.17
 torch-geometric>=2.5.0
