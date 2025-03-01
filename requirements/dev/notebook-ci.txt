@@ -1,7 +1,7 @@
 nbconvert==7.16.4
 nbformat==5.10.4
 nbclient==0.10.2
-ipykernel==6.26.0
+ipykernel==6.29.5
 scipy == 1.14.0
 torch==2.3.0
 torch-scatter==2.1.1
