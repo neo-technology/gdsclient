@@ -1,4 +1,4 @@
-ruff == 0.8.0
+ruff == 0.9.9
 mypy == 1.13.0
 nbconvert == 7.16.4
 pandas-stubs == 2.2.3.241009
