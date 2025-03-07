@@ -42,3 +42,6 @@ class ServerVersion:
 
     def __str__(self) -> str:
         return f"{self.major}.{self.minor}.{self.patch}"
+
+    def __repr__(self) -> str:
+        return f"ServerVersion({str(self)})"

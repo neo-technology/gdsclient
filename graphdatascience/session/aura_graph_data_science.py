@@ -18,6 +18,7 @@ from graphdatascience.query_runner.arrow_query_runner import ArrowQueryRunner
 from graphdatascience.query_runner.gds_arrow_client import GdsArrowClient
 from graphdatascience.query_runner.neo4j_query_runner import Neo4jQueryRunner
 from graphdatascience.query_runner.session_query_runner import SessionQueryRunner
+from graphdatascience.query_runner.standalone_session_query_runner import StandAloneSessionQueryRunner
 from graphdatascience.session.dbms_connection_info import DbmsConnectionInfo
 from graphdatascience.utils.util_remote_proc_runner import UtilRemoteProcRunner
 
@@ -32,7 +33,7 @@ class AuraGraphDataScience(DirectEndpoints, UncallableNamespace):
     def create(
         cls,
         gds_session_connection_info: DbmsConnectionInfo,
-        db_endpoint: Union[Neo4jQueryRunner, DbmsConnectionInfo],
+        db_endpoint: Optional[Union[Neo4jQueryRunner, DbmsConnectionInfo]],
         delete_fn: Callable[[], bool],
         arrow_disable_server_verification: bool = False,
         arrow_tls_root_certs: Optional[bytes] = None,
@@ -66,7 +67,9 @@ class AuraGraphDataScience(DirectEndpoints, UncallableNamespace):
             arrow_tls_root_certs,
         )
 
-        if isinstance(db_endpoint, Neo4jQueryRunner):
+        if not db_endpoint:
+            db_bolt_query_runner = None
+        elif isinstance(db_endpoint, Neo4jQueryRunner):
             db_bolt_query_runner = db_endpoint
         else:
             db_bolt_query_runner = Neo4jQueryRunner.create_for_db(
@@ -76,11 +79,17 @@ class AuraGraphDataScience(DirectEndpoints, UncallableNamespace):
                 show_progress=False,
                 database=db_endpoint.database,
             )
-        db_bolt_query_runner.set_bookmarks(bookmarks)
+        if db_bolt_query_runner and bookmarks:
+            db_bolt_query_runner.set_bookmarks(bookmarks)
 
-        session_query_runner = SessionQueryRunner.create(
-            session_arrow_query_runner, db_bolt_query_runner, session_arrow_client, show_progress
-        )
+        if db_bolt_query_runner:
+            session_query_runner: QueryRunner = SessionQueryRunner.create(
+                session_arrow_query_runner, db_bolt_query_runner, session_arrow_client, show_progress
+            )
+        else:
+            session_query_runner: QueryRunner = StandAloneSessionQueryRunner.create(
+                session_arrow_query_runner, session_arrow_client, show_progress
+            )
 
         gds_version = session_bolt_query_runner.server_version()
         return cls(

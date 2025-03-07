@@ -86,7 +86,7 @@ class GdsSessions:
         self,
         session_name: str,
         memory: SessionMemory,
-        db_connection: DbmsConnectionInfo,
+        db_connection: Optional[DbmsConnectionInfo],
         ttl: Optional[timedelta] = None,
         cloud_location: Optional[CloudLocation] = None,
         timeout: Optional[int] = None,

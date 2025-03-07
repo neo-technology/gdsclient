@@ -57,25 +57,26 @@ class DedicatedSessions:
         self,
         session_name: str,
         memory: SessionMemory,
-        db_connection: DbmsConnectionInfo,
+        db_connection: Optional[DbmsConnectionInfo],
         ttl: Optional[timedelta] = None,
         cloud_location: Optional[CloudLocation] = None,
         timeout: Optional[int] = None,
     ) -> AuraGraphDataScience:
-        db_runner = Neo4jQueryRunner.create_for_db(
-            endpoint=db_connection.uri,
-            auth=db_connection.auth(),
-            aura_ds=True,
-            show_progress=False,
-            database=db_connection.database,
-        )
+        db_runner: Optional[Neo4jQueryRunner] = None
+        dbid: Optional[str] = None
+        if db_connection:
+            db_runner = Neo4jQueryRunner.create_for_db(
+                endpoint=db_connection.uri,
+                auth=db_connection.auth(),
+                aura_ds=True,
+                show_progress=False,
+                database=db_connection.database,
+            )
+            self._validate_db_connection(db_runner)
+            dbid = AuraApi.extract_id(db_connection.uri)
 
-        self._validate_db_connection(db_runner)
-
-        dbid = AuraApi.extract_id(db_connection.uri)
-
-        # hashing the password to avoid storing the actual db password in Aura
-        password = hashlib.sha256(db_connection.password.encode()).hexdigest()
+            # hashing the password to avoid storing the actual db password in Aura
+            password = hashlib.sha256(db_connection.password.encode()).hexdigest()
 
         session_details = self._get_or_create_session(session_name, dbid, password, memory.value, ttl, cloud_location)
 
@@ -153,13 +154,13 @@ class DedicatedSessions:
     def _get_or_create_session(
         self,
         session_name: str,
-        dbid: str,
+        dbid: Optional[str],
         pwd: str,
         memory: SessionMemoryValue,
         ttl: Optional[timedelta] = None,
         cloud_location: Optional[CloudLocation] = None,
     ) -> SessionDetails:
-        db_instance = self._aura_api.list_instance(dbid)
+        db_instance = self._aura_api.list_instance(dbid) if dbid else None
 
         if not (db_instance or cloud_location):
             raise ValueError("cloud_location must be provided for sessions against a self-managed DB.")
@@ -183,7 +184,7 @@ class DedicatedSessions:
         self,
         session_id: str,
         session_connection: DbmsConnectionInfo,
-        db_runner: Neo4jQueryRunner,
+        db_runner: Optional[Neo4jQueryRunner],
     ) -> AuraGraphDataScience:
         return AuraGraphDataScience.create(
             gds_session_connection_info=session_connection,

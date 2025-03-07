@@ -88,7 +88,7 @@ class SessionQueryRunner(QueryRunner):
         return database_location == "remote"
 
     def server_version(self) -> ServerVersion:
-        return self._db_query_runner.server_version()
+        return self._gds_query_runner.server_version()
 
     def driver_config(self) -> dict[str, Any]:
         return self._db_query_runner.driver_config()
